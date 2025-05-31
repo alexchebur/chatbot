@@ -1,19 +1,1041 @@
+# Судебный дела трекер - Material Design Интерфейс
+
+Ниже представлен полный код HTML/JS приложения для управления судебными делами с материальным дизайном:
+
+```html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embedded Gradio App</title>
+    <title>Судебный дела трекер</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-dark: #303f9f;
+            --primary-light: #c5cae9;
+            --accent: #ff4081;
+            --text: #212121;
+            --text-secondary: #757575;
+            --divider: #e0e0e0;
+            --background: #f5f5f5;
+            --card: #ffffff;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --error: #f44336;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+        
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .cases-list {
+            width: 300px;
+            background: var(--card);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-right: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .cases-list-header {
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .cases-search {
+            padding: 10px 16px;
+            background: var(--primary-light);
+        }
+        
+        .cases-scroll {
+            overflow-y: auto;
+            flex-grow: 1;
+            max-height: calc(100vh - 180px);
+        }
+        
+        .case-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--divider);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .case-item:hover {
+            background: #f0f4ff;
+        }
+        
+        .case-item.active {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .case-number {
+            font-weight: 500;
+            font-size: 15px;
+        }
+        
+        .case-subject {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .case-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        
+        .case-type.plaintiff {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .case-type.defendant {
+            background: #f1e8e6;
+            color: #d32f2f;
+        }
+        
+        .case-detail {
+            flex-grow: 1;
+            background: var(--card);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .case-header {
+            padding: 16px 24px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .case-content {
+            padding: 24px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 20px 0 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--divider);
+            color: var(--primary-dark);
+        }
+        
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+        
+        .col {
+            padding: 0 10px;
+            margin-bottom: 15px;
+        }
+        
+        .s6 { width: 50%; }
+        .s4 { width: 33.3333%; }
+        .s3 { width: 25%; }
+        .s12 { width: 100%; }
+        
+        .input-field {
+            position: relative;
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        
+        .input-field label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            transform: translateY(0);
+            position: static;
+        }
+        
+        .input-field input, .input-field select, .input-field textarea {
+            background: #f5f8fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 8px 12px;
+            height: auto;
+            margin: 5px 0 0;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .input-field input:focus, .input-field select:focus, .input-field textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
+        }
+        
+        .actions {
+            padding: 16px 24px;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid var(--divider);
+        }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn i {
+            margin-right: 8px;
+            font-size: 18px;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-success:hover {
+            background: #388e3c;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: rgba(63, 81, 181, 0.1);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        
+        .status-completed {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+        
+        .status-progress {
+            background: #fff3e0;
+            color: var(--warning);
+        }
+        
+        .status-pretension {
+            background: #e3f2fd;
+            color: var(--primary);
+        }
+        
+        .amount {
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        @media (max-width: 992px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .cases-list {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+            
+            .cases-scroll {
+                max-height: 300px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .s6, .s4, .s3 {
+                width: 100%;
+            }
+            
+            .col {
+                margin-bottom: 10px;
+            }
+            
+            .case-content {
+                padding: 16px;
+            }
+            
+            .actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>PDF-чатбот</h1>
-    <iframe
-        src="https://unclejunkie-pdf-chatbot.hf.space"
-        width="100%"
-        height="600"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen>
-    </iframe>
+    <div class="app-container">
+        <!-- Левая панель - Список дел -->
+        <div class="cases-list">
+            <div class="cases-list-header">
+                <h5 style="margin:0">Судебные дела</h5>
+                <button id="new-case-btn" class="btn-flat white-text" style="padding:0">
+                    <i class="material-icons">add</i>
+                </button>
+            </div>
+            <div class="cases-search">
+                <div class="input-field">
+                    <input id="search-input" type="text" placeholder="Поиск по делам...">
+                </div>
+            </div>
+            <div class="cases-scroll" id="cases-container">
+                <!-- Список дел будет сгенерирован через JS -->
+            </div>
+        </div>
+        
+        <!-- Правая панель - Детали дела -->
+        <div class="case-detail">
+            <div class="case-header">
+                <h5 id="case-title" style="margin:0">Карточка дела</h5>
+                <div>
+                    <span class="status-indicator status-pretension" id="case-status">Статус</span>
+                    <span class="amount" id="case-amount">0 руб</span>
+                </div>
+            </div>
+            
+            <div class="case-content">
+                <div class="row">
+                    <div class="col s6">
+                        <div class="input-field">
+                            <label for="case-number">Номер дела</label>
+                            <input type="text" id="case-number">
+                        </div>
+                    </div>
+                    <div class="col s6">
+                        <div class="input-field">
+                            <label for="case-type">Тип дела</label>
+                            <select id="case-type">
+                                <option value="plaintiff">Истец</option>
+                                <option value="defendant">Ответчик</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="col s6">
+                        <div class="input-field">
+                            <label for="case-status-select">Статус дела</label>
+                            <select id="case-status-select">
+                                <!-- Опции будут заполнены через JS -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col s6">
+                        <div class="input-field">
+                            <label for="hearing-date">Дата заседания</label>
+                            <input type="date" id="hearing-date">
+                        </div>
+                    </div>
+                    
+                    <div class="col s12">
+                        <div class="input-field">
+                            <label for="opponent">Истец / Ответчик</label>
+                            <input type="text" id="opponent">
+                        </div>
+                    </div>
+                    
+                    <div class="col s12">
+                        <div class="input-field">
+                            <label for="case-subject">Предмет спора</label>
+                            <textarea id="case-subject" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-title">Финансовые требования</div>
+                <div class="row">
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="principal-debt">Основной долг (руб)</label>
+                            <input type="number" id="principal-debt" value="0">
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="penalty">Штрафные санкции (руб)</label>
+                            <input type="number" id="penalty" value="0">
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="legal-costs">Судебные расходы (руб)</label>
+                            <input type="number" id="legal-costs" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="col s6">
+                        <div class="input-field">
+                            <label for="first-delay-day">Первый день просрочки</label>
+                            <input type="date" id="first-delay-day">
+                        </div>
+                    </div>
+                    <div class="col s6">
+                        <div class="input-field">
+                            <label for="last-delay-day">Последний день просрочки</label>
+                            <input type="date" id="last-delay-day">
+                        </div>
+                    </div>
+                    
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="delay-days">Дней просрочки</label>
+                            <input type="number" id="delay-days" readonly>
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="future-penalty">ШС на будущее время?</label>
+                            <select id="future-penalty">
+                                <option value="yes">Да</option>
+                                <option value="no">Нет</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="penalty-forecast">Прогноз ШС на сегодня</label>
+                            <input type="number" id="penalty-forecast" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-title">Информация о взыскании</div>
+                <div class="row">
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="recovered-first">Взыскано (1-я инстанция)</label>
+                            <input type="number" id="recovered-first" value="0">
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="recovered-second">Взыскано (2-я инстанция)</label>
+                            <input type="number" id="recovered-second" value="0">
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="recovered-third">Взыскано (3-я инстанция)</label>
+                            <input type="number" id="recovered-third" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="to-pay">Подлежит оплате (руб)</label>
+                            <input type="number" id="to-pay" value="0">
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="payment-deadline">Срок оплаты</label>
+                            <input type="date" id="payment-deadline">
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <div class="input-field">
+                            <label for="paid">Оплачено (руб)</label>
+                            <input type="number" id="paid" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="col s6">
+                        <div class="input-field">
+                            <label for="payment-order">Платёжное поручение</label>
+                            <input type="text" id="payment-order">
+                        </div>
+                    </div>
+                    <div class="col s6">
+                        <div class="input-field">
+                            <label for="debt-balance">Остаток долга (руб)</label>
+                            <input type="number" id="debt-balance" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-title">Дополнительная информация</div>
+                <div class="row">
+                    <div class="col s12">
+                        <div class="input-field">
+                            <label for="notes">Примечание</label>
+                            <textarea id="notes" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <div>
+                    <button id="save-btn" class="btn">
+                        <i class="material-icons">save</i> Сохранить
+                    </button>
+                    <button id="delete-btn" class="btn btn-outline" style="margin-left:10px">
+                        <i class="material-icons">delete</i> Удалить
+                    </button>
+                </div>
+                <button id="report-btn" class="btn btn-success">
+                    <i class="material-icons">description</i> Сформировать отчет
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        // Данные статусов из легенды
+        const statuses = [
+            "1-я инстанция",
+            "1-я инстанция ожидается",
+            "1-я инстанция завершена",
+            "2-я инстанция",
+            "2-я инстанция ожидается",
+            "2-я инстанция завершена",
+            "3-я инстанция (округ)",
+            "3-я инстанция (округ) ожидается",
+            "3-я инстанция (округ) завершена",
+            "3,5-я инстанция (СКЭС ВС РФ)",
+            "3,5-я инстанция (СКЭС ВС РФ) ожидается",
+            "3,5-я инстанция (СКЭС ВС РФ) завершена",
+            "4-я (ВС РФ, надзор) инстанция",
+            "4-я (ВС РФ, надзор) инстанция ожидается",
+            "4-я (ВС РФ, надзор) инстанция завершена",
+            "5-я (КС РФ) инстанция",
+            "5-я (КС РФ) инстанция ожидается",
+            "5-я (КС РФ) инстанция завершена",
+            "претензия",
+            "претензия готовится",
+            "претензия направлена",
+            "исполнение претензии",
+            "исполнение решения суда",
+            "исполнение мирового соглашения",
+            "исполнение соглашения об урегулировании",
+            "завершено исполнением претензии",
+            "завершено исполнением решения суда",
+            "завершено исполнением мирового соглашения",
+            "завершено отказом в удовлетворении иска",
+            "завершено отказом от иска после оплаты долга"
+        ];
+
+        // Заполняем выпадающий список статусов
+        const statusSelect = document.getElementById('case-status-select');
+        statuses.forEach(status => {
+            const option = document.createElement('option');
+            option.value = status;
+            option.textContent = status;
+            statusSelect.appendChild(option);
+        });
+
+        // Инициализация Materialize компонентов
+        document.addEventListener('DOMContentLoaded', function() {
+            M.AutoInit();
+            
+            // Загрузка данных из localStorage
+            loadCases();
+            
+            // Установка сегодняшней даты по умолчанию для некоторых полей
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('hearing-date').value = today;
+            document.getElementById('payment-deadline').value = today;
+            
+            // Создаем тестовые данные
+            createSampleData();
+            
+            // Обработчики событий
+            document.getElementById('save-btn').addEventListener('click', saveCase);
+            document.getElementById('delete-btn').addEventListener('click', deleteCase);
+            document.getElementById('new-case-btn').addEventListener('click', createNewCase);
+            document.getElementById('report-btn').addEventListener('click', generateReport);
+            document.getElementById('search-input').addEventListener('input', filterCases);
+            
+            // Расчетные поля
+            document.getElementById('principal-debt').addEventListener('input', calculateAmounts);
+            document.getElementById('penalty').addEventListener('input', calculateAmounts);
+            document.getElementById('legal-costs').addEventListener('input', calculateAmounts);
+            document.getElementById('to-pay').addEventListener('input', calculateAmounts);
+            document.getElementById('paid').addEventListener('input', calculateAmounts);
+            document.getElementById('first-delay-day').addEventListener('change', calculateDelayDays);
+            document.getElementById('last-delay-day').addEventListener('change', calculateDelayDays);
+        });
+
+        // Данные дел
+        let cases = [];
+        let currentCaseId = null;
+
+        // Загрузка дел из localStorage
+        function loadCases() {
+            const savedCases = localStorage.getItem('courtCases');
+            if (savedCases) {
+                cases = JSON.parse(savedCases);
+                renderCasesList();
+                if (cases.length > 0) {
+                    selectCase(cases[0].id);
+                }
+            }
+        }
+
+        // Сохранение дел в localStorage
+        function saveCases() {
+            localStorage.setItem('courtCases', JSON.stringify(cases));
+        }
+
+        // Отображение списка дел
+        function renderCasesList() {
+            const container = document.getElementById('cases-container');
+            container.innerHTML = '';
+            
+            cases.forEach(courtCase => {
+                const caseElement = document.createElement('div');
+                caseElement.className = `case-item ${currentCaseId === courtCase.id ? 'active' : ''}`;
+                caseElement.dataset.id = courtCase.id;
+                
+                const typeClass = courtCase.type === 'plaintiff' ? 'plaintiff' : 'defendant';
+                const typeText = courtCase.type === 'plaintiff' ? 'Истец' : 'Ответчик';
+                
+                caseElement.innerHTML = `
+                    <div class="case-number">${courtCase.caseNumber || 'Без номера'}</div>
+                    <div class="case-subject">${courtCase.subject || 'Без описания'}</div>
+                    <div class="case-type ${typeClass}">${typeText}</div>
+                `;
+                
+                caseElement.addEventListener('click', () => selectCase(courtCase.id));
+                container.appendChild(caseElement);
+            });
+        }
+
+        // Фильтрация дел
+        function filterCases() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const container = document.getElementById('cases-container');
+            const caseItems = container.querySelectorAll('.case-item');
+            
+            caseItems.forEach(item => {
+                const caseNumber = item.querySelector('.case-number').textContent.toLowerCase();
+                const caseSubject = item.querySelector('.case-subject').textContent.toLowerCase();
+                
+                if (caseNumber.includes(searchTerm) || caseSubject.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Выбор дела
+        function selectCase(id) {
+            currentCaseId = id;
+            const courtCase = cases.find(c => c.id === id);
+            
+            if (courtCase) {
+                // Заполняем форму
+                document.getElementById('case-number').value = courtCase.caseNumber || '';
+                document.getElementById('case-type').value = courtCase.type || 'plaintiff';
+                document.getElementById('case-status-select').value = courtCase.status || '';
+                document.getElementById('hearing-date').value = courtCase.hearingDate || '';
+                document.getElementById('opponent').value = courtCase.opponent || '';
+                document.getElementById('case-subject').value = courtCase.subject || '';
+                
+                document.getElementById('principal-debt').value = courtCase.principalDebt || 0;
+                document.getElementById('penalty').value = courtCase.penalty || 0;
+                document.getElementById('legal-costs').value = courtCase.legalCosts || 0;
+                document.getElementById('first-delay-day').value = courtCase.firstDelayDay || '';
+                document.getElementById('last-delay-day').value = courtCase.lastDelayDay || '';
+                document.getElementById('delay-days').value = courtCase.delayDays || 0;
+                document.getElementById('future-penalty').value = courtCase.futurePenalty || 'no';
+                document.getElementById('penalty-forecast').value = courtCase.penaltyForecast || 0;
+                
+                document.getElementById('recovered-first').value = courtCase.recoveredFirst || 0;
+                document.getElementById('recovered-second').value = courtCase.recoveredSecond || 0;
+                document.getElementById('recovered-third').value = courtCase.recoveredThird || 0;
+                document.getElementById('to-pay').value = courtCase.toPay || 0;
+                document.getElementById('payment-deadline').value = courtCase.paymentDeadline || '';
+                document.getElementById('paid').value = courtCase.paid || 0;
+                document.getElementById('payment-order').value = courtCase.paymentOrder || '';
+                document.getElementById('debt-balance').value = courtCase.debtBalance || 0;
+                
+                document.getElementById('notes').value = courtCase.notes || '';
+                
+                // Обновляем заголовок
+                document.getElementById('case-title').textContent = courtCase.caseNumber ? `Дело №${courtCase.caseNumber}` : 'Новое дело';
+                document.getElementById('case-status').textContent = courtCase.status || 'Статус';
+                document.getElementById('case-amount').textContent = `${(courtCase.principalDebt || 0) + (courtCase.penalty || 0) + (courtCase.legalCosts || 0)} руб`;
+                
+                // Обновляем класс статуса
+                updateStatusIndicator(courtCase.status);
+            }
+            
+            renderCasesList();
+        }
+
+        // Обновление индикатора статуса
+        function updateStatusIndicator(status) {
+            const indicator = document.getElementById('case-status');
+            
+            if (!status) {
+                indicator.className = 'status-indicator';
+                return;
+            }
+            
+            if (status.includes('завершено') || status.includes('завершена')) {
+                indicator.className = 'status-indicator status-completed';
+            } else if (status.includes('претензия') || status.includes('исполнение')) {
+                indicator.className = 'status-indicator status-pretension';
+            } else {
+                indicator.className = 'status-indicator status-progress';
+            }
+        }
+
+        // Создание нового дела
+        function createNewCase() {
+            const newCase = {
+                id: Date.now(),
+                caseNumber: '',
+                type: 'plaintiff',
+                status: '',
+                hearingDate: new Date().toISOString().split('T')[0],
+                opponent: '',
+                subject: '',
+                principalDebt: 0,
+                penalty: 0,
+                legalCosts: 0,
+                firstDelayDay: '',
+                lastDelayDay: '',
+                delayDays: 0,
+                futurePenalty: 'no',
+                penaltyForecast: 0,
+                recoveredFirst: 0,
+                recoveredSecond: 0,
+                recoveredThird: 0,
+                toPay: 0,
+                paymentDeadline: new Date().toISOString().split('T')[0],
+                paid: 0,
+                paymentOrder: '',
+                debtBalance: 0,
+                notes: ''
+            };
+            
+            cases.push(newCase);
+            saveCases();
+            renderCasesList();
+            selectCase(newCase.id);
+        }
+
+        // Сохранение дела
+        function saveCase() {
+            if (currentCaseId === null) return;
+            
+            const courtCase = cases.find(c => c.id === currentCaseId);
+            if (!courtCase) return;
+            
+            // Сохраняем данные из формы
+            courtCase.caseNumber = document.getElementById('case-number').value;
+            courtCase.type = document.getElementById('case-type').value;
+            courtCase.status = document.getElementById('case-status-select').value;
+            courtCase.hearingDate = document.getElementById('hearing-date').value;
+            courtCase.opponent = document.getElementById('opponent').value;
+            courtCase.subject = document.getElementById('case-subject').value;
+            
+            courtCase.principalDebt = parseFloat(document.getElementById('principal-debt').value) || 0;
+            courtCase.penalty = parseFloat(document.getElementById('penalty').value) || 0;
+            courtCase.legalCosts = parseFloat(document.getElementById('legal-costs').value) || 0;
+            courtCase.firstDelayDay = document.getElementById('first-delay-day').value;
+            courtCase.lastDelayDay = document.getElementById('last-delay-day').value;
+            courtCase.delayDays = parseInt(document.getElementById('delay-days').value) || 0;
+            courtCase.futurePenalty = document.getElementById('future-penalty').value;
+            courtCase.penaltyForecast = parseFloat(document.getElementById('penalty-forecast').value) || 0;
+            
+            courtCase.recoveredFirst = parseFloat(document.getElementById('recovered-first').value) || 0;
+            courtCase.recoveredSecond = parseFloat(document.getElementById('recovered-second').value) || 0;
+            courtCase.recoveredThird = parseFloat(document.getElementById('recovered-third').value) || 0;
+            courtCase.toPay = parseFloat(document.getElementById('to-pay').value) || 0;
+            courtCase.paymentDeadline = document.getElementById('payment-deadline').value;
+            courtCase.paid = parseFloat(document.getElementById('paid').value) || 0;
+            courtCase.paymentOrder = document.getElementById('payment-order').value;
+            courtCase.debtBalance = parseFloat(document.getElementById('debt-balance').value) || 0;
+            
+            courtCase.notes = document.getElementById('notes').value;
+            
+            // Обновляем UI
+            document.getElementById('case-title').textContent = courtCase.caseNumber ? `Дело №${courtCase.caseNumber}` : 'Новое дело';
+            document.getElementById('case-status').textContent = courtCase.status || 'Статус';
+            document.getElementById('case-amount').textContent = `${courtCase.principalDebt + courtCase.penalty + courtCase.legalCosts} руб`;
+            updateStatusIndicator(courtCase.status);
+            
+            saveCases();
+            renderCasesList();
+            
+            M.toast({html: 'Дело успешно сохранено!', classes: 'green'});
+        }
+
+        // Удаление дела
+        function deleteCase() {
+            if (currentCaseId === null) return;
+            
+            if (confirm('Вы уверены, что хотите удалить это дело?')) {
+                cases = cases.filter(c => c.id !== currentCaseId);
+                saveCases();
+                
+                if (cases.length > 0) {
+                    selectCase(cases[0].id);
+                } else {
+                    createNewCase();
+                }
+                
+                M.toast({html: 'Дело удалено', classes: 'red'});
+            }
+        }
+
+        // Расчет финансовых показателей
+        function calculateAmounts() {
+            const principalDebt = parseFloat(document.getElementById('principal-debt').value) || 0;
+            const penalty = parseFloat(document.getElementById('penalty').value) || 0;
+            const legalCosts = parseFloat(document.getElementById('legal-costs').value) || 0;
+            const toPay = parseFloat(document.getElementById('to-pay').value) || 0;
+            const paid = parseFloat(document.getElementById('paid').value) || 0;
+            
+            // Общая сумма требований
+            const totalClaims = principalDebt + penalty + legalCosts;
+            document.getElementById('case-amount').textContent = `${totalClaims} руб`;
+            
+            // Остаток долга
+            const debtBalance = toPay - paid;
+            document.getElementById('debt-balance').value = debtBalance;
+        }
+
+        // Расчет дней просрочки
+        function calculateDelayDays() {
+            const firstDay = document.getElementById('first-delay-day').value;
+            const lastDay = document.getElementById('last-delay-day').value;
+            
+            if (firstDay && lastDay) {
+                const firstDate = new Date(firstDay);
+                const lastDate = new Date(lastDay);
+                const diffTime = Math.abs(lastDate - firstDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                document.getElementById('delay-days').value = diffDays;
+            } else {
+                document.getElementById('delay-days').value = 0;
+            }
+        }
+
+        // Генерация отчета
+        function generateReport() {
+            if (cases.length === 0) {
+                M.toast({html: 'Нет данных для отчета', classes: 'orange'});
+                return;
+            }
+            
+            // Создаем CSV содержимое
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Заголовки
+            const headers = [
+                "Номер дела", "Тип", "Статус", "Дата заседания", 
+                "Истец/Ответчик", "Предмет спора", "Основной долг", 
+                "Штрафные санкции", "Судебные расходы", "Первый день просрочки",
+                "Последний день просрочки", "Дней просрочки", "ШС на будущее время?",
+                "Прогноз ШС на сегодня", "Взыскано (1-я инст)", "Взыскано (2-я инст)",
+                "Взыскано (3-я инст)", "Подлежит оплате", "Срок оплаты", "Оплачено",
+                "Платёжное поручение", "Остаток долга", "Примечание"
+            ];
+            
+            csvContent += headers.join(";") + "\r\n";
+            
+            // Данные
+            cases.forEach(courtCase => {
+                const row = [
+                    courtCase.caseNumber || '',
+                    courtCase.type === 'plaintiff' ? 'Истец' : 'Ответчик',
+                    courtCase.status || '',
+                    courtCase.hearingDate || '',
+                    courtCase.opponent || '',
+                    courtCase.subject || '',
+                    courtCase.principalDebt || 0,
+                    courtCase.penalty || 0,
+                    courtCase.legalCosts || 0,
+                    courtCase.firstDelayDay || '',
+                    courtCase.lastDelayDay || '',
+                    courtCase.delayDays || 0,
+                    courtCase.futurePenalty === 'yes' ? 'Да' : 'Нет',
+                    courtCase.penaltyForecast || 0,
+                    courtCase.recoveredFirst || 0,
+                    courtCase.recoveredSecond || 0,
+                    courtCase.recoveredThird || 0,
+                    courtCase.toPay || 0,
+                    courtCase.paymentDeadline || '',
+                    courtCase.paid || 0,
+                    courtCase.paymentOrder || '',
+                    courtCase.debtBalance || 0,
+                    courtCase.notes || ''
+                ].join(";");
+                
+                csvContent += row + "\r\n";
+            });
+            
+            // Создаем ссылку для скачивания
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "судебные_дела_отчет.csv");
+            document.body.appendChild(link);
+            
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Создание тестовых данных
+        function createSampleData() {
+            if (cases.length > 0) return;
+            
+            const sampleCases = [
+                {
+                    id: 1,
+                    caseNumber: "А40-123456/2024",
+                    type: "plaintiff",
+                    status: "1-я инстанция",
+                    hearingDate: "2024-06-15",
+                    opponent: "ООО 'СтройГарант'",
+                    subject: "Взыскание задолженности по договору подряда",
+                    principalDebt: 1500000,
+                    penalty: 250000,
+                    legalCosts: 50000,
+                    toPay: 1800000,
+                    paid: 1200000,
+                    debtBalance: 600000
+                },
+                {
+                    id: 2,
+                    caseNumber: "А41-654321/2024",
+                    type: "defendant",
+                    status: "претензия направлена",
+                    hearingDate: "2024-07-10",
+                    opponent: "ИП Смирнов А.В.",
+                    subject: "Оспаривание штрафных санкций по договору поставки",
+                    principalDebt: 0,
+                    penalty: 450000,
+                    legalCosts: 30000,
+                    toPay: 480000,
+                    paid: 0,
+                    debtBalance: 480000
+                },
+                {
+                    id: 3,
+                    caseNumber: "А43-987654/2024",
+                    type: "plaintiff",
+                    status: "завершено исполнением решения суда",
+                    hearingDate: "2024-05-20",
+                    opponent: "ЗАО 'ТехноПрофи'",
+                    subject: "Взыскание неосновательного обогащения",
+                    principalDebt: 780000,
+                    penalty: 120000,
+                    legalCosts: 45000,
+                    toPay: 945000,
+                    paid: 945000,
+                    debtBalance: 0
+                }
+            ];
+            
+            cases = sampleCases;
+            saveCases();
+            renderCasesList();
+            if (cases.length > 0) {
+                selectCase(cases[0].id);
+            }
+        }
+    </script>
 </body>
 </html>
+```
+
+## Описание приложения
+
+Этот интерфейс для управления судебными делами включает следующие компоненты:
+
+1. **Левая панель со списком дел**:
+   - Поле поиска для фильтрации дел
+   - Компактные карточки дел с номером дела, предметом спора и типом (истец/ответчик)
+   - Кнопка добавления нового дела
+
+2. **Основная область - карточка дела**:
+   - Общая информация (номер дела, тип, статус, дата заседания)
+   - Сведения об оппоненте и предмете спора
+   - Финансовые требования (основной долг, штрафы, судебные расходы)
+   - Расчет дней просрочки
+   - Информация о взыскании по инстанциям
+   - Данные об оплате и остатке долга
+   - Примечания
+
+3. **Панель действий**:
+   - Кнопка "Сохранить" для сохранения изменений
+   - Кнопка "Удалить" для удаления дела
+   - Кнопка "Сформировать отчет" для экспорта данных в CSV
+
+4. **Особенности реализации**:
+   - Material Design интерфейс с использованием Materialize CSS
+   - Адаптивный дизайн для всех устройств
+   - Локальное сохранение данных в браузере (localStorage)
+   - Автоматические расчеты финансовых показателей
+   - Цветовая индикация статусов дел
+   - Примеры тестовых данных для демонстрации
+
+Приложение полностью готово к использованию - просто скопируйте код в HTML-файл и откройте в браузере.
